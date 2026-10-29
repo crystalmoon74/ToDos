@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Todo</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main>
+  <h1>할 일</h1>
+
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+  <form class="add" method="post" action="{{ url_for('add_todo') }}">
+    <input name="title" placeholder="할 일을 입력하세요" required autofocus>
+    <div class="row">
+      <label>마감일 <input type="date" name="due_date"></label>
+      <input name="tags" placeholder="태그 (쉼표로 구분: 업무, 긴급)">
+      <button type="submit">추가</button>
+    </div>
+  </form>
+
+  <nav class="filters">
+    {% for key, label in [('all', '전체'), ('active', '진행 중'), ('done', '완료')] %}
+      <a href="{{ url_for('index', status=key, tag=tag or None) }}" class="{{ 'on' if status == key }}">{{ label }}</a>
+    {% endfor %}
+  </nav>
+
+  {% if all_tags %}
+  <nav class="tags">
+    {% if tag %}<a href="{{ url_for('index', status=status) }}" class="tag clear">× {{ tag }}</a>{% endif %}
+    {% for t in all_tags if t.name != tag %}
+      <a href="{{ url_for('index', status=status, tag=t.name) }}" class="tag">#{{ t.name }} <small>{{ t.cnt }}</small></a>
+    {% endfor %}
+  </nav>
+  {% endif %}
+
+  <ul class="list">
+    {% for t in todos %}
+    {% set overdue = t.due_date and not t.is_completed and t.due_date < today %}
+    <li class="{{ 'done' if t.is_completed }} {{ 'overdue' if overdue }}">
+      <form method="post" action="{{ url_for('toggle_todo', todo_id=t.id) }}">
+        <button class="check" title="{{ '완료 취소' if t.is_completed else '완료 표시' }}">{{ '✓' if t.is_completed }}</button>
+      </form>
+      <div class="body">
+        <div class="title">{{ t.title }}</div>
+        <div class="meta">
+          {% if t.due_date %}<span class="due">마감 {{ t.due_date }}{% if overdue %} (지남){% endif %}</span>{% endif %}
+          <span>생성 {{ t.created_at | localtime }}</span>
+          {% if t.completed_at %}<span>완료 {{ t.completed_at | localtime }}</span>{% endif %}
+        </div>
+        {% if t.tag_names %}
+        <div class="item-tags">
+          {% for name in t.tag_names.split('\x1f') %}
+            <a href="{{ url_for('index', status=status, tag=name) }}" class="tag">#{{ name }}</a>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <form method="post" action="{{ url_for('delete_todo', todo_id=t.id) }}" onsubmit="return confirm('삭제할까요?')">
+        <button class="delete" title="삭제">삭제</button>
+      </form>
+    </li>
+    {% else %}
+    <li class="empty">할 일이 없습니다.</li>
+    {% endfor %}
+  </ul>
+</main>
+</body>
+</html>

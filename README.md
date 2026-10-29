@@ -13,6 +13,8 @@
 
 직접 가입해서 나만의 계정으로 써도 됩니다. 계정마다 자기 할 일만 보입니다.
 
+**✅ 저장·보안 확인 기록:** 로컬(SQLite)과 Supabase 각각의 저장 확인, 클라우드 전환 기록, RLS 시험 결과는 [VERIFICATION.md](VERIFICATION.md)에 있습니다.
+
 ## PRD (요구사항)
 
 > 같은 내용이 [PRD.md](PRD.md)에도 있습니다. 수정할 때는 두 파일을 함께 고쳐 주세요.
@@ -106,5 +108,9 @@ python -m venv .venv
 | `static/` | 화면 (index.html, app.js, style.css) |
 | `db/schema.sql` | Supabase 테이블, RLS 정책, 뷰, 함수 |
 | `PRD.md` | 요구사항(PRD)과 구현 상태 |
+| `VERIFICATION.md` | 로컬·Supabase 저장 확인, 클라우드 전환, RLS 확인 기록 |
+| `tests/` | 확인 스크립트 (`verify_local.py`, `verify_supabase.py`) |
+| `docs/results/` | 확인 스크립트 출력 원문 |
+| `local-sqlite/` | v1 로컬 SQLite 버전 (로컬 저장 확인용 보관) |
 | `.env.example` | 환경변수 견본 (`.env`는 git에 올리지 않음) |
 | `requirements.txt` | Python 패키지 (배포 시 gunicorn 사용) |
