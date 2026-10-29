@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Todo</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+<main>
+  <p id="loading" class="muted">불러오는 중…</p>
+
+  <!-- 로그인 화면 -->
+  <section id="auth-view" hidden>
+    <h1>Todo</h1>
+    <form id="auth-form" class="card auth">
+      <input type="email" name="email" placeholder="이메일" autocomplete="email" required>
+      <input type="password" name="password" placeholder="비밀번호 (6자 이상)" autocomplete="current-password" minlength="6" required>
+      <p id="auth-message" class="message" hidden></p>
+      <button type="submit" id="auth-submit">로그인</button>
+      <p class="muted switch">
+        <span id="auth-switch-text">계정이 없나요?</span>
+        <button type="button" id="auth-switch" class="link">회원가입</button>
+      </p>
+    </form>
+  </section>
+
+  <!-- 할 일 화면 -->
+  <section id="todo-view" hidden>
+    <header class="top">
+      <h1>할 일</h1>
+      <div class="user">
+        <span id="user-email" class="muted"></span>
+        <button type="button" id="logout" class="link">로그아웃</button>
+      </div>
+    </header>
+
+    <p id="todo-message" class="message error" hidden></p>
+
+    <form id="add-form" class="card add">
+      <input name="title" placeholder="할 일을 입력하세요" required>
+      <div class="row">
+        <label>마감일 <input type="date" name="due_date"></label>
+        <input name="tags" placeholder="태그 (쉼표로 구분: 업무, 긴급)">
+        <button type="submit">추가</button>
+      </div>
+    </form>
+
+    <nav class="filters" id="filters">
+      <button type="button" data-status="all" class="on">전체</button>
+      <button type="button" data-status="active">진행 중</button>
+      <button type="button" data-status="done">완료</button>
+    </nav>
+    <nav class="tags" id="tag-bar"></nav>
+    <ul class="list" id="list"></ul>
+  </section>
+</main>
+</body>
+</html>
