@@ -2,6 +2,9 @@
 
 로그인해서 쓰는 할 일 앱입니다. Python(Flask) 백엔드와 Supabase(무료 클라우드 Postgres + Auth)로 만들었습니다.
 
+**🌐 접속 주소: https://todos-g3b4.onrender.com/**
+(Render 무료 요금제라 한동안 접속이 없으면 잠들고, 첫 접속 때 깨어나는 데 30~60초쯤 걸립니다.)
+
 ## PRD (요구사항)
 
 ### v1: 로컬 Todo 앱
@@ -32,7 +35,7 @@
 | RLS + 자기 할 일만 | ✅ | `db/schema.sql` 정책 (실제 Supabase에서 다른 사용자의 접근 차단 검증) |
 | Supabase Auth 로그인, 소유자 기록 | ✅ | `/api/auth/*`, `todos.user_id` |
 | 무료 도구만 | ✅ | Flask, Supabase Free, Render Free |
-| 클라우드 배포 | 🔜 진행 예정 | Render Web Service |
+| 클라우드 배포 | ✅ | Render Web Service (https://todos-g3b4.onrender.com/) |
 
 ## 구조
 
