@@ -184,14 +184,36 @@ PASS 테스트 할 일 삭제 완료 (테스트 사용자는 대시보드에서 
 
 ## 5. 대시보드 화면 캡처
 
-<!-- 캡처 파일을 docs/screenshots/ 에 넣으면 아래 목록을 이미지로 바꿉니다 -->
-| 파일 | 내용 |
+캡처 날짜: 2026-11-01
+
+### 5-1. 로컬(SQLite): 껐다 켜기 전과 후
+
+로컬 앱(`local-sqlite/run.bat`, http://127.0.0.1:5001)에 할 일 2건을 넣고, 서버와 브라우저를 닫았다가 다시 켠 뒤 새 창(InPrivate)으로 열었습니다. 제목, 마감일, 생성일자, 태그가 그대로 남아 있습니다.
+
+| 끄기 전 | 다시 켠 뒤 |
 |---|---|
-| `docs/screenshots/1-local-before.png` | 로컬 앱(`local-sqlite/run.bat`)에 할 일을 넣은 화면 |
-| `docs/screenshots/2-local-after.png` | 창과 서버를 닫았다가 다시 켠 뒤 같은 화면 |
-| `docs/screenshots/3-supabase-table.png` | Supabase **Table Editor → todos**: 행과 `user_id` 열 |
-| `docs/screenshots/4-supabase-rls.png` | Supabase **Authentication → Policies**: 세 테이블의 RLS 정책 목록 |
-| `docs/screenshots/5-deployed.png` | 배포 사이트에 데모 계정으로 로그인한 화면 |
+| ![로컬 앱, 끄기 전](docs/screenshots/1-local-before.png) | ![로컬 앱, 다시 켠 뒤](docs/screenshots/2-local-after.png) |
+
+### 5-2. Supabase: 클라우드 DB에 저장된 행
+
+Supabase 대시보드 **Table Editor → todos**입니다. 앱에서 넣은 할 일이 클라우드 DB에 저장되어 있고, 행마다 소유자 `user_id`가 기록되어 있습니다. 사용자마다 `user_id`가 다릅니다. 오른쪽 위의 **4 RLS policies**는 이 테이블에 정책 4개가 걸려 있다는 뜻입니다.
+
+![Supabase Table Editor의 todos 테이블](docs/screenshots/3-supabase-table.png)
+
+### 5-3. Supabase: RLS 정책
+
+Supabase 대시보드 **Database → Policies**입니다.
+- 세 테이블(`tags`, `todo_tags`, `todos`)에 모두 RLS가 켜져 있습니다. 켜져 있어서 오른쪽 위 버튼이 **Disable RLS**로 보입니다.
+- 정책은 [db/schema.sql](db/schema.sql)과 같고, 모두 `authenticated`(로그인한 사용자)에만 적용됩니다.
+- 테이블 이름 옆의 **API DISABLED** 표시는 로그인 안 한 사용자(`anon`)의 테이블 권한을 회수(`revoke`)해서 나타나는 표시입니다. 의도한 이중 잠금이고, 로그인한 사용자는 정상적으로 씁니다 (위 4장 시험 결과 참고).
+
+![Supabase RLS 정책 목록](docs/screenshots/4-supabase-rls.png)
+
+### 5-4. 배포 사이트
+
+https://todos-g3b4.onrender.com/ 에 데모 계정으로 로그인한 화면입니다. Table Editor에 보이는 행들(영어공부, 아이펠숙제, 운동 등)이 같은 사용자의 화면에 나옵니다. 마감 지난 할 일은 빨간색으로 강조됩니다.
+
+![배포 사이트 로그인 화면](docs/screenshots/5-deployed.png)
 
 ## 다시 확인하는 방법
 
