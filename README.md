@@ -2,6 +2,15 @@
 
 로그인해서 쓰는 할 일 앱입니다. Python(Flask) 백엔드와 Supabase(무료 클라우드 Postgres + Auth)로 만들었습니다.
 
+> [!IMPORTANT]
+> **📌 과제 제출물 바로가기**
+>
+> | 평가 항목 | 제출물 | 내용 |
+> |---|---|---|
+> | **PRD 한 장** | 📄 **[PRD.md](PRD.md)** | 만들 기능과 조건 (v1 로컬 SQLite, v2 Supabase 전환 + 로그인 + RLS), 구현 상태 |
+> | **데이터가 남는 Todo 앱** | ✅ **[VERIFICATION.md](VERIFICATION.md)** 1·2장, 5-1장 | CRUD 동작, 서버를 껐다 켜도 데이터가 남는 확인 결과와 화면 캡처 |
+> | **로컬·클라우드 저장과 보안 확인** | 🔒 **[VERIFICATION.md](VERIFICATION.md)** | 로컬(SQLite)과 Supabase 각각의 저장 확인, 클라우드 전환 기록, RLS 확인 기록 (시험 결과 + 대시보드 캡처) |
+
 **🌐 접속 주소: https://todos-g3b4.onrender.com/**
 (Render 무료 요금제라 한동안 접속이 없으면 잠들고, 첫 접속 때 깨어나는 데 30~60초쯤 걸립니다.)
 
@@ -13,11 +22,9 @@
 
 직접 가입해서 나만의 계정으로 써도 됩니다. 계정마다 자기 할 일만 보입니다.
 
-**✅ 저장·보안 확인 기록:** 로컬(SQLite)과 Supabase 각각의 저장 확인, 클라우드 전환 기록, RLS 시험 결과는 [VERIFICATION.md](VERIFICATION.md)에 있습니다.
-
 ## PRD (요구사항)
 
-> 같은 내용이 [PRD.md](PRD.md)에도 있습니다. 수정할 때는 두 파일을 함께 고쳐 주세요.
+> 📄 같은 내용이 **[PRD.md](PRD.md)** 에도 있습니다. 수정할 때는 두 파일을 함께 고쳐 주세요.
 
 ### v1: 로컬 Todo 앱
 - **무엇:** 내 컴퓨터에서 도는 Todo(할 일) 앱
