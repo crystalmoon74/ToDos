@@ -1,10 +1,10 @@
 # 저장·보안 확인 기록
 
-로컬(SQLite)과 클라우드(Supabase)에서 각각 데이터가 저장되는지, 그리고 Supabase 전환 뒤 RLS(행 수준 보안)가 제대로 막는지 확인한 기록입니다.
+로컬(SQLite)과 클라우드(Supabase)에서 각각 데이터가 저장되는지, Supabase 전환 뒤 RLS(행 수준 보안)가 제대로 막는지, 그리고 로컬 버전의 명령줄 도구(CLI)가 제대로 동작하는지 확인한 기록입니다.
 
-- 확인 날짜: 2026-10-29
+- 확인 날짜: 2026-11-02 (1~4장: 2026-10-29, 5장 캡처: 2026-11-01, 6장 CLI·7장 AI 연동 캡처: 2026-11-02)
 - 확인 스크립트는 저장소에 있으므로 누구나 다시 돌려 볼 수 있습니다. ([다시 확인하는 방법](#다시-확인하는-방법))
-- 스크립트 출력 원문: [docs/results/verify_local.txt](docs/results/verify_local.txt), [docs/results/verify_supabase.txt](docs/results/verify_supabase.txt)
+- 스크립트 출력 원문: [docs/results/verify_local.txt](docs/results/verify_local.txt), [docs/results/verify_supabase.txt](docs/results/verify_supabase.txt), [docs/results/verify_cli.txt](docs/results/verify_cli.txt)
 
 ## 요약
 
@@ -16,6 +16,8 @@
 | RLS: 다른 사용자 데이터 차단 | 같은 스크립트 3-2·3-3부: 사용자 B가 백엔드 경유 4건, Supabase 직접 호출 8건으로 A의 데이터 접근 | ✅ 12건 모두 차단 |
 | Supabase 스크립트 전체 | | ✅ 35/35 통과 |
 | 배포 사이트 | https://todos-g3b4.onrender.com/ 에서 로그인 없이 API 호출, 화면 코드에 키 포함 여부 | ✅ 401, 키 없음 |
+| 로컬 CLI(`todo_cli.py`) | [tests/verify_cli.py](tests/verify_cli.py): 복사본에서 list·add·done·summary 실행, 잘못된 입력 거부, 웹 화면 반영, 실데이터 보호 | ✅ 15/15 통과 |
+| AI가 CLI·스킬로 데이터 읽기 | 새 대화에서 Claude Code에 요청하고 화면 캡처 (7장) | ✅ 규칙 파일 읽음, 승인창 확인, 삭제 거부, 스킬 2개 발동 |
 
 ---
 
@@ -215,12 +217,127 @@ https://todos-g3b4.onrender.com/ 에 데모 계정으로 로그인한 화면입�
 
 ![배포 사이트 로그인 화면](docs/screenshots/5-deployed.png)
 
+## 6. 로컬 CLI(todo_cli.py) 확인
+
+확인 날짜: 2026-11-02
+
+**대상:** [local-sqlite/todo_cli.py](local-sqlite/todo_cli.py) (AI·터미널에서 할 일을 다루는 명령줄 도구. 웹 앱과 같은 `todo.db`를 사용)
+
+**방법:** [tests/verify_cli.py](tests/verify_cli.py)가 아래 순서로 **CLI를 실제 프로세스로 실행**하고 출력·종료 코드를 확인합니다.
+1. `local-sqlite/`를 임시 폴더에 복사 (`todo.db`는 빼고 복사해 빈 DB에서 시작)
+2. `list` → `add` 2건(마감일·태그, 중복 태그 포함) → 잘못된 입력 2건(빈 제목, 없는 날짜 `2026-13-40`)
+3. `done` 정상 1건 → 같은 번호 다시 `done` → 없는 번호 `done 99`
+4. `list`, `summary` 출력이 기대한 문구와 같은지 비교
+5. 복사본 `todo.db`를 직접 열어 저장된 행 확인
+6. 복사본의 웹 앱(`app.py`)으로 `/` 화면을 열어 CLI로 넣은 할 일이 보이는지 확인
+7. 실행 전후 내 `local-sqlite/todo.db`의 해시를 비교해 실데이터가 바뀌지 않았는지 확인
+
+**결과:** ✅ 15/15 통과
+
+```
+== 2. 추가 ==
+  $ todo_cli.py add 보고서 작성 --due 2026-11-05 --tags 업무, 긴급,업무   (종료 코드 0)
+    추가했습니다: 1. 보고서 작성
+  $ todo_cli.py add       (종료 코드 1)
+    제목을 입력해 주세요.
+  $ todo_cli.py add 잘못된 마감 --due 2026-13-40   (종료 코드 1)
+    입력값이 올바르지 않습니다. 마감일 형식(YYYY-MM-DD)을 확인해 주세요.
+
+== 3. 완료 ==
+  $ todo_cli.py done 2   (종료 코드 0)
+    완료했습니다: 2. 운동하기
+  $ todo_cli.py done 2   (종료 코드 0)
+    이미 완료된 할 일입니다: 2. 운동하기
+  $ todo_cli.py done 99   (종료 코드 1)
+    99번 할 일이 없습니다.
+
+== 4. 목록 / 요약 ==
+  $ todo_cli.py list   (종료 코드 0)
+    [ ] 1. 보고서 작성  (마감 2026-11-05)  #업무, 긴급
+    [x] 2. 운동하기  #건강
+  $ todo_cli.py summary   (종료 코드 0)
+    오늘(2026-11-02) 완료 1건 / 남은 할 일 1건
+    - 2. 운동하기 (16:33)
+
+== 5. DB 내용 ==
+  [todo.db: id, 제목, 마감일, 완료 여부, 태그]
+    (1, '보고서 작성', '2026-11-05', 0, '업무, 긴급')
+    (2, '운동하기', None, 1, '건강')
+
+== 6. 웹 화면과 같은 DB 사용 ==
+PASS CLI로 추가한 할 일이 웹 화면(/)에 보임
+
+== 7. 실데이터 보호 ==
+PASS 내 local-sqlite/todo.db 변경 없음
+
+15/15 passed
+```
+
+(핵심 부분만 옮겼습니다. 전체 출력은 [docs/results/verify_cli.txt](docs/results/verify_cli.txt)에 있습니다.)
+
+- `list`의 `[ ]`는 미완료, `[x]`는 완료입니다. 미완료가 먼저, 그다음 마감일 순으로 나옵니다.
+- 태그를 `업무, 긴급,업무`로 넣어도 `업무`는 한 번만 저장됩니다 (웹 앱과 같은 `parse_tags` 사용).
+- 잘못된 입력과 없는 번호는 **종료 코드 1**로 끝나고 DB에 저장되지 않습니다 (5번에서 2건만 남음).
+- `summary`의 시각(`16:33`)은 DB의 UTC 시각을 내 컴퓨터 시간으로 바꾼 값입니다. "오늘"도 내 컴퓨터 날짜 기준으로 판단합니다.
+
+## 7. AI가 CLI·스킬로 내 데이터 읽기 (화면 캡처)
+
+캡처 날짜: 2026-11-02
+
+**대상:** 프로젝트 루트(`C:\aiagent\todo`)에서 실행한 Claude Code CLI. 사용법은 [CLAUDE.md](CLAUDE.md), 스킬은 [.claude/skills/](.claude/skills/)에 있습니다.
+
+**방법:**
+1. 대화를 새로 열 때마다 아래 요청을 한마디씩 보냅니다. 명령이나 파일 위치는 따로 알려 주지 않습니다.
+2. AI가 실행하려는 명령과 승인창을 확인합니다. 읽기는 허용하고, 연습용 파일 삭제는 거부합니다.
+
+**결과 요약**
+| 요청 | AI가 한 일 | 결과 |
+|---|---|---|
+| "이 프로젝트 어떻게 실행해?" | CLAUDE.md에 적은 `todo_cli.py` 명령으로 안내 | ✅ 규칙 파일을 읽음 |
+| "Todo 항목 summary 부탁해" | `summary`를 직접 실행해 실제 할 일을 표로 정리 | ✅ 소스가 아니라 데이터를 읽음 |
+| "오늘 할 일 목록을 보여 줘" | `list` 실행 전 승인창 표시 | ✅ 허용 후 실행 |
+| "연습용-삭제해도-됨.txt만 지워 줘" | `Remove-Item` 실행 전 승인창 표시 | ✅ 거부, 파일 그대로 남음 |
+| "요약 스킬 써서 오늘 한 일 정리해 줘" | `todo-summary` 스킬 발동 → CLI 실행 → 커밋 메시지 형식으로 출력 | ✅ |
+| "오늘 만든 todo_cli.py 확인 결과를 검증 기록에 추가해 줘" | `verification-record` 스킬 발동 → 확인 스크립트 작성·실행 → 6장 추가 | ✅ |
+
+### 7-1. 규칙 파일(CLAUDE.md)을 읽고 답하기
+
+새 대화에서 "이 프로젝트 어떻게 실행해?"라고만 물었습니다. 아래쪽 **2. 로컬 SQLite 버전**에 CLAUDE.md에 적은 `local-sqlite\todo_cli.py` 명령 4개가 그대로 나옵니다.
+
+![새 대화에서 실행 방법을 묻자 CLAUDE.md의 명령으로 답함](docs/screenshots/6-ai-howto-run.png)
+
+### 7-2. AI가 CLI를 직접 실행해 데이터 읽기
+
+"Todo 항목 summary 부탁해"라고 하자 **Ran 1 shell command**로 CLI를 실행하고, 실제 `todo.db`에 있는 할 일 2건을 표로 정리했습니다. 복사·붙여넣기 없이 AI가 앱을 직접 돌린 결과입니다.
+
+![AI가 summary를 실행해 할 일 표를 보여 줌](docs/screenshots/7-ai-cli-summary.png)
+
+### 7-3. 권한 승인창
+
+| 읽기: `list` 실행 전 | 삭제: 연습용 파일 지우기 전 |
+|---|---|
+| ![list 실행 승인창](docs/screenshots/8-permission-list.png) | ![삭제 승인창](docs/screenshots/9-permission-delete.png) |
+| 실행할 명령(`todo_cli.py list`)이 그대로 보입니다. **Yes**로 허용했습니다. 2번을 고르면 다음부터 이 명령은 묻지 않습니다. | 삭제 대상이 `연습용-삭제해도-됨.txt` 하나인지 확인한 뒤 **No**로 거부했습니다. 실습 뒤에도 파일이 남아 있습니다. 실제 `todo.db`는 삭제 연습 대상으로 쓰지 않았습니다. |
+
+### 7-4. 스킬을 한마디로 발동
+
+| `todo-summary` | `verification-record` |
+|---|---|
+| ![todo-summary 스킬 발동](docs/screenshots/10-skill-todo-summary.png) | ![verification-record 스킬 발동](docs/screenshots/11-skill-verification-record.png) |
+| "요약 스킬 써서 오늘 한 일 정리해 줘" → **Skill(todo-summary)**가 불리고, CLI 결과가 `chore: 오늘(2026-11-02) 완료한 할 일 1건` 형식으로 정리됩니다. | "오늘 만든 todo_cli.py 확인 결과를 검증 기록에 추가해 줘" → **Skill(verification-record)**가 불리고, 확인 스크립트 [tests/verify_cli.py](tests/verify_cli.py)를 만들어 실행한 뒤 이 문서의 6장을 썼습니다. |
+
+**관찰한 점**
+- 같은 데이터를 두 번 읽었는데, 7-2(16:02)에는 오늘 완료 0건이고 7-4(16:25)에는 1건입니다. 그 사이에 1번 할 일을 완료했기 때문입니다.
+- 스킬은 데이터를 직접 열지 않고, 두 경우 모두 CLI(`todo_cli.py`)를 거쳐 읽었습니다.
+
 ## 다시 확인하는 방법
 
 ```
 .venv\Scripts\python tests\verify_local.py
 .venv\Scripts\python tests\verify_supabase.py
+.venv\Scripts\python tests\verify_cli.py
 ```
 
 - `verify_local.py`는 v1 앱을 임시 폴더에 복사해서 확인하므로 내 `todo.db`를 건드리지 않습니다.
+- `verify_cli.py`도 임시 폴더 복사본(빈 DB)에서 CLI를 실행하므로 내 `todo.db`를 건드리지 않습니다. 실행 전후 해시 비교로 이를 직접 확인합니다.
 - `verify_supabase.py`는 `.env`의 Supabase 설정을 씁니다. 실행할 때마다 테스트 사용자 2명(`todo-test-*@example.com`)이 생기고, 할 일 데이터는 끝에 지웁니다. 테스트 사용자는 대시보드 **Authentication → Users**에서 지울 수 있습니다. *Confirm email*이 켜져 있으면 끄고 실행해 주세요.
